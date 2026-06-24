@@ -128,3 +128,11 @@ xcodebuild -project Bills.xcodeproj -target Bills \
 ```
 /Users/wuxingfeng/Documents/Codex/2026-06-24/ai-ai-ai-ai-ai/outputs/Bills/Bills.xcodeproj
 ```
+
+## 工作纪律
+
+### 关键架构变动需经用户同意
+任何涉及核心功能变更的修改（如快捷指令架构、触发方式、数据流），必须先与用户讨论并获得明确同意，不可直接实施。
+- 用户明确告知 iOS 18 快捷指令中没有「截屏」操作
+- 这是一个客观事实约束，但**解决方案的选择**（修改快捷指令架构、改用自动化、换触发方式等）需由用户决定
+- 错误案例：未经讨论直接修改了 ManualShortcutGuideView 中的手动创建步骤
