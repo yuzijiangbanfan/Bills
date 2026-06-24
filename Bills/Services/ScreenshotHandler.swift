@@ -7,7 +7,7 @@ class ScreenshotHandler: ObservableObject {
     @Published var lastRecognizedAmount: Double?
     @Published var error: String?
     
-    let appGroupID = "group.com.example.bills"
+    let appGroupID = "group.com.yuzijiangbanfan.bills"
     
     /// Process screenshot from Photo Library (used by the Shortcut flow)
     /// Shortcut: Take Screenshot → Open App → App reads latest photo → OCR → Delete → Popup
