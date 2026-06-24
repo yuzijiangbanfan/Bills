@@ -2,17 +2,18 @@ import SwiftUI
 
 struct OnboardingView: View {
     @Binding var isCompleted: Bool
+    @Environment(\.scenePhase) private var scenePhase
     
     @State private var currentStep = 0
     @State private var shortcutFileURL: URL?
-    @State private var showShortcutShare = false
     @State private var isGenerating = true
+    @State private var shortcutInstalled = false
     
     private let steps = [
         OnboardingStep(
             icon: "square.and.arrow.down",
             title: "安装快捷指令",
-            description: "点击下方按钮，安装「记账助手」快捷指令。安装后只需按一下操作按钮，即可自动记账。"
+            description: "点击下方按钮安装快捷指令，系统会自动跳转到「快捷指令」App，点击「添加快捷指令」即可。完成后回到本 App 继续。"
         ),
         OnboardingStep(
             icon: "rectangle.3.group.fill",
@@ -86,8 +87,28 @@ struct OnboardingView: View {
             .padding(.horizontal, 32)
             .padding(.bottom, 12)
             
-            // Skip button
-            if currentStep < 2 {
+            // Skip / Continue button
+            if currentStep == 0 {
+                if shortcutInstalled {
+                    Button {
+                        withAnimation { currentStep = 1 }
+                    } label: {
+                        Text("已安装，下一步")
+                            .font(.system(size: 15, weight: .medium))
+                            .foregroundColor(.accentColor)
+                    }
+                    .padding(.bottom, 40)
+                } else {
+                    Button {
+                        completeOnboarding()
+                    } label: {
+                        Text("跳过，稍后设置")
+                            .font(.system(size: 14))
+                            .foregroundColor(.secondary)
+                    }
+                    .padding(.bottom, 40)
+                }
+            } else if currentStep < 2 {
                 Button {
                     completeOnboarding()
                 } label: {
@@ -100,18 +121,10 @@ struct OnboardingView: View {
                 Color.clear.frame(height: 52).padding(.bottom, 40)
             }
         }
-        .onAppear {
-            generateShortcut()
-        }
-        .sheet(isPresented: $showShortcutShare) {
-            if let url = shortcutFileURL {
-                ShareSheet(items: [url])
-                    .onAppear {
-                        // Give user time to share, then auto-advance after a delay
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                            // Don't auto-advance, let user come back
-                        }
-                    }
+        .onAppear(perform: generateShortcut)
+        .onChange(of: scenePhase) { newPhase in
+            if newPhase == .active && shortcutFileURL != nil && currentStep == 0 {
+                shortcutInstalled = true
             }
         }
         .background(Color(.systemBackground))
@@ -131,9 +144,12 @@ struct OnboardingView: View {
     private func handleAction() {
         switch currentStep {
         case 0:
-            // Present share sheet with shortcut file
-            if shortcutFileURL != nil {
-                showShortcutShare = true
+            if let url = shortcutFileURL {
+                UIApplication.shared.open(url) { success in
+                    if success {
+                        shortcutInstalled = true
+                    }
+                }
             }
         case 1:
             withAnimation {
