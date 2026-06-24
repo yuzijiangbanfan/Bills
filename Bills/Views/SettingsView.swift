@@ -19,9 +19,9 @@ struct SettingsView: View {
                 // MARK: - Quick Setup Guide
                 Section("快速上手") {
                     VStack(alignment: .leading, spacing: 12) {
-                        setupStep(number: 1, title: "安装快捷指令", detail: "快捷指令只需1个操作：打开URL bills://process。手动创建仅10秒")
+                        setupStep(number: 1, title: "安装快捷指令", detail: "点击下方按钮，自动从网络导入快捷指令")
                         setupStep(number: 2, title: "绑定操作按钮", detail: "设置 → 操作按钮 → 选择「快捷指令」→ 选择「记账助手」")
-                        setupStep(number: 3, title: "截屏后按操作按钮", detail: "付款后先截屏（音量上+电源键），再按操作按钮自动识别")
+                        setupStep(number: 3, title: "开始使用", detail: "付款后按一下操作按钮，App 自动识别并弹出记账")
                     }
                     .listRowBackground(Color(.systemGray6))
                     

@@ -15,17 +15,17 @@ struct OnboardingView: View {
         OnboardingStep(
             icon: "square.and.arrow.down",
             title: "安装快捷指令",
-            description: "按下方按钮自动从网络导入，或手动创建（仅需1个操作，10秒搞定）"
+            description: "点击下方按钮，App 会尝试自动从网络导入快捷指令。如果失败也可手动创建。"
         ),
         OnboardingStep(
             icon: "rectangle.3.group.fill",
             title: "绑定操作按钮",
-            description: "设置 → 操作按钮 → 选择「快捷指令」→ 选择「记账助手」"
+            description: "打开 设置 → 操作按钮 → 选择「快捷指令」→ 选择「记账助手」（使用快捷键时需先解锁 iPhone）"
         ),
         OnboardingStep(
             icon: "checkmark.circle.fill",
             title: "开始使用",
-            description: "付款后先截屏（音量上+电源键），再按操作按钮自动识别记账"
+            description: "付款后按一下操作按钮，App 自动识别金额并弹出记账面板。全程只需两步。"
         )
     ]
     
@@ -33,6 +33,7 @@ struct OnboardingView: View {
         VStack(spacing: 0) {
             Spacer()
             
+            // Header
             VStack(spacing: 8) {
                 Image(systemName: steps[currentStep].icon)
                     .font(.system(size: 48))
@@ -54,6 +55,7 @@ struct OnboardingView: View {
             
             Spacer()
             
+            // Step indicator
             HStack(spacing: 8) {
                 ForEach(0..<steps.count, id: \.self) { i in
                     Circle()
@@ -88,6 +90,7 @@ struct OnboardingView: View {
             .padding(.horizontal, 32)
             .padding(.bottom, 12)
             
+            // Show alternative options if installation failed
             if currentStep == 0 && installFailed {
                 Button {
                     showManualGuide = true
@@ -95,7 +98,7 @@ struct OnboardingView: View {
                     HStack(spacing: 6) {
                         Image(systemName: "hand.point.up")
                             .font(.system(size: 13))
-                        Text("手动创建快捷指令（快速 / 10秒）")
+                        Text("手动创建快捷指令（4步）")
                             .font(.system(size: 14))
                     }
                     .foregroundColor(.secondary)
@@ -116,6 +119,7 @@ struct OnboardingView: View {
                 .padding(.bottom, 8)
             }
             
+            // Skip button
             Button {
                 completeOnboarding()
             } label: {
@@ -178,33 +182,40 @@ struct OnboardingView: View {
     }
 }
 
-// MARK: - Manual Shortcut Guide (iOS 18 compatible - 1 action: Open URL)
+// MARK: - Manual Shortcut Guide
 struct ManualShortcutGuideView: View {
     @Binding var isPresented: Bool
     
     var body: some View {
         NavigationStack {
             List {
-                Section("快捷指令（1个操作）") {
+                Section {
                     VStack(alignment: .leading, spacing: 16) {
                         manualStep(number: 1,
                                    icon: "square.and.pencil",
                                    title: "新建快捷指令",
-                                   detail: "打开「快捷指令」App → 点右上角「+」新建一个")
+                                   detail: "打开「快捷指令」App，点击右上角「+」新建一个快捷指令")
                         
                         Divider()
                         
                         manualStep(number: 2,
-                                   icon: "link",
-                                   title: "添加「打开URL」",
-                                   detail: "点「添加操作」→ 搜索「打开URL」→ 在 URL 栏输入：bills://process")
+                                   icon: "camera.viewfinder",
+                                   title: "添加「截屏」操作",
+                                   detail: "点击「添加操作」，搜索并添加「截屏」操作")
                         
                         Divider()
                         
                         manualStep(number: 3,
+                                   icon: "link",
+                                   title: "添加「打开URL」操作",
+                                   detail: "再次点击「+」，搜索并添加「打开URL」操作，URL 栏输入：bills://process")
+                        
+                        Divider()
+                        
+                        manualStep(number: 4,
                                    icon: "character.book.closed",
-                                   title: "重命名保存",
-                                   detail: "点顶部标题重命名为「记账助手」→ 点「完成」")
+                                   title: "重命名并保存",
+                                   detail: "点顶部标题将其重命名为「记账助手」，点击「完成」保存")
                     }
                     .listRowBackground(Color(.systemGray6))
                 }
@@ -214,38 +225,7 @@ struct ManualShortcutGuideView: View {
                         Image(systemName: "rectangle.3.group.fill")
                             .font(.system(size: 20))
                             .foregroundColor(.accentColor)
-                        Text("设置 → 操作按钮 → 快捷指令 → 选择「记账助手」")
-                            .font(.system(size: 15))
-                            .foregroundColor(.secondary)
-                            .lineSpacing(4)
-                    }
-                    .padding(.vertical, 8)
-                }
-                
-                Section("使用流程") {
-                    VStack(alignment: .leading, spacing: 8) {
-                        HStack(spacing: 10) {
-                            Image(systemName: "1.circle.fill")
-                                .foregroundColor(.accentColor)
-                            Text("付款后按「音量上 + 电源键」截屏")
-                                .font(.system(size: 15))
-                        }
-                        HStack(spacing: 10) {
-                            Image(systemName: "2.circle.fill")
-                                .foregroundColor(.accentColor)
-                            Text("按操作按钮 → 快捷指令打开 App → 自动识别记账")
-                                .font(.system(size: 15))
-                        }
-                    }
-                    .padding(.vertical, 8)
-                }
-                
-                Section("更省事的办法（自动化）") {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Image(systemName: "bolt.fill")
-                            .font(.system(size: 20))
-                            .foregroundColor(.accentColor)
-                        Text("快捷指令 App → 自动化 → 创建个人自动化 → 截屏 → 运行「记账助手」→ 关闭「运行前询问」。设置后每次截屏都自动触发，连操作按钮都不需要按。")
+                        Text("设置 → 操作按钮 → 选择「快捷指令」→ 选择「记账助手」")
                             .font(.system(size: 15))
                             .foregroundColor(.secondary)
                             .lineSpacing(4)
