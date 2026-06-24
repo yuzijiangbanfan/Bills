@@ -5,10 +5,8 @@ struct SettingsView: View {
     
     @State private var showClearConfirm = false
     @State private var showExportShare = false
-    @State private var showShortcutShare = false
     @State private var exportURL: URL?
-    @State private var shortcutURL: URL?
-    @State private var shortcutGenerated = false
+    @State private var isInstallingShortcut = false
     
     var body: some View {
         NavigationStack {
@@ -37,7 +35,7 @@ struct SettingsView: View {
                         .cornerRadius(10)
                     }
                     .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
-                    .disabled(!shortcutGenerated && shortcutURL == nil)
+                    .disabled(isInstallingShortcut)
                 }
                 
                 // MARK: - Data
@@ -101,20 +99,8 @@ struct SettingsView: View {
             } message: {
                 Text("此操作不可撤销，所有记录将被永久删除。")
             }
-            .onAppear {
-                // Pre-generate shortcut on appear
-                if shortcutURL == nil {
-                    shortcutURL = ShortcutGenerator.generateShortcutFile()
-                    shortcutGenerated = true
-                }
-            }
             .sheet(isPresented: $showExportShare) {
                 if let url = exportURL {
-                    ShareSheet(items: [url])
-                }
-            }
-            .sheet(isPresented: $showShortcutShare) {
-                if let url = shortcutURL {
                     ShareSheet(items: [url])
                 }
             }
@@ -144,13 +130,13 @@ struct SettingsView: View {
     }
     
     private func installShortcut() {
-        // Generate the shortcut file if not already generated
-        if shortcutURL == nil {
-            shortcutURL = ShortcutGenerator.generateShortcutFile()
-        }
-        
-        if shortcutURL != nil {
-            showShortcutShare = true
+        isInstallingShortcut = true
+        if let url = ShortcutGenerator.importShortcutURL {
+            UIApplication.shared.open(url) { success in
+                isInstallingShortcut = false
+            }
+        } else {
+            isInstallingShortcut = false
         }
     }
     

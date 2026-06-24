@@ -1,6 +1,15 @@
 import Foundation
 
+/// Raw GitHub URL of the pre-signed .shortcut file
+let shortcutRawURL = "https://raw.githubusercontent.com/yuzijiangbanfan/Bills/main/Bills.shortcut"
+
 class ShortcutGenerator {
+    
+    /// Returns a shortcuts:// URL to trigger import from the raw GitHub file
+    static var importShortcutURL: URL? {
+        guard let encoded = shortcutRawURL.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else { return nil }
+        return URL(string: "shortcuts://import-shortcut?url=\(encoded)")
+    }
     
     /// Pre-signed shortcut data (signed via macOS shortcuts CLI)
     /// workflow: Take Screenshot -> Open URL bills://process
