@@ -5,8 +5,13 @@ struct SettingsView: View {
     
     @State private var showClearConfirm = false
     @State private var showExportShare = false
+    @State private var showShortcutShare = false
     @State private var exportURL: URL?
+    @State private var shortcutURL: URL?
+    @State private var shortcutGenerated = false
     @State private var isInstallingShortcut = false
+    @State private var installFailed = false
+    @State private var showManualGuide = false
     
     var body: some View {
         NavigationStack {
@@ -14,7 +19,7 @@ struct SettingsView: View {
                 // MARK: - Quick Setup Guide
                 Section("快速上手") {
                     VStack(alignment: .leading, spacing: 12) {
-                        setupStep(number: 1, title: "安装快捷指令", detail: "点击下方按钮，安装「记账助手」快捷指令")
+                        setupStep(number: 1, title: "安装快捷指令", detail: "点击下方按钮，自动从网络导入快捷指令")
                         setupStep(number: 2, title: "绑定操作按钮", detail: "设置 → 操作按钮 → 选择「快捷指令」→ 选择「记账助手」")
                         setupStep(number: 3, title: "开始使用", detail: "付款后按一下操作按钮，App 自动识别并弹出记账")
                     }
@@ -22,11 +27,23 @@ struct SettingsView: View {
                     
                     // One-tap install button
                     Button(action: installShortcut) {
-                        HStack(spacing: 10) {
-                            Image(systemName: "square.and.arrow.down")
-                                .font(.system(size: 16))
-                            Text("一键安装快捷指令")
-                                .font(.system(size: 15, weight: .medium))
+                        Group {
+                            if isInstallingShortcut {
+                                HStack(spacing: 10) {
+                                    ProgressView()
+                                        .tint(.white)
+                                        .scaleEffect(0.8)
+                                    Text("正在安装...")
+                                        .font(.system(size: 15, weight: .medium))
+                                }
+                            } else {
+                                HStack(spacing: 10) {
+                                    Image(systemName: installFailed ? "arrow.clockwise" : "square.and.arrow.down")
+                                        .font(.system(size: 16))
+                                    Text(installFailed ? "重试安装" : "一键安装快捷指令")
+                                        .font(.system(size: 15, weight: .medium))
+                                }
+                            }
                         }
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
@@ -34,8 +51,47 @@ struct SettingsView: View {
                         .background(Color.accentColor)
                         .cornerRadius(10)
                     }
-                    .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                    .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: installFailed ? 4 : 8, trailing: 16))
                     .disabled(isInstallingShortcut)
+                    
+                    // Fallback options when installation fails
+                    if installFailed {
+                        Button(action: { showManualGuide = true }) {
+                            HStack(spacing: 10) {
+                                Image(systemName: "hand.point.up")
+                                    .font(.system(size: 16))
+                                Text("手动创建（4步）")
+                                    .font(.system(size: 15, weight: .medium))
+                            }
+                            .foregroundColor(.accentColor)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 44)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .stroke(Color.accentColor, lineWidth: 1)
+                            )
+                            .cornerRadius(10)
+                        }
+                        .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
+                        
+                        Button(action: { showShortcutShare = true }) {
+                            HStack(spacing: 10) {
+                                Image(systemName: "square.and.arrow.up")
+                                    .font(.system(size: 16))
+                                Text("通过文件导入")
+                                    .font(.system(size: 15, weight: .medium))
+                            }
+                            .foregroundColor(.secondary)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 44)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .stroke(Color.secondary.opacity(0.3), lineWidth: 1)
+                            )
+                            .cornerRadius(10)
+                        }
+                        .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 8, trailing: 16))
+                    }
                 }
                 
                 // MARK: - Data
@@ -104,6 +160,20 @@ struct SettingsView: View {
                     ShareSheet(items: [url])
                 }
             }
+            .sheet(isPresented: $showShortcutShare) {
+                if let url = shortcutURL {
+                    ShareSheet(items: [url])
+                }
+            }
+            .sheet(isPresented: $showManualGuide) {
+                ManualShortcutGuideView(isPresented: $showManualGuide)
+            }
+            .onAppear {
+                if !shortcutGenerated {
+                    shortcutURL = ShortcutGenerator.generateShortcutFile()
+                    shortcutGenerated = true
+                }
+            }
         }
     }
     
@@ -131,12 +201,15 @@ struct SettingsView: View {
     
     private func installShortcut() {
         isInstallingShortcut = true
+        installFailed = false
         if let url = ShortcutGenerator.importShortcutURL {
             UIApplication.shared.open(url) { success in
                 isInstallingShortcut = false
+                installFailed = !success
             }
         } else {
             isInstallingShortcut = false
+            installFailed = true
         }
     }
     
