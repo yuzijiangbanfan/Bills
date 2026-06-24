@@ -1,0 +1,27 @@
+# Xcode
+*.xcworkspace
+xcuserdata/
+DerivedData/
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+build/
+
+# Swift Package Manager
+.build/
+Package.resolved
+
+# CocoaPods
+Pods/
+
+# macOS
+.DS_Store
+
+# IDE
+*.swp
+*.swo
+*~
+
+# Environment
+.env
